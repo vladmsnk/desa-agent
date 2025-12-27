@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package users;
+
+option go_package = "pkg/pb";
+
+service UsersService {
+  rpc ListUsers(ListUsersRequest) returns (stream User) {};
+  rpc GetUser(GetUserRequest) returns (User);
+}
+
+message ListUsersRequest {
+  bool include_pii = 1;
+}
+
+message GetUserRequest {
+  string user_hash = 1;
+  bool include_pii = 2;
+}
+
+message User {
+  string user_hash = 1;
+  optional UserPII user_pii = 2;
+  UserStatus status = 3;
+  IdentityProviderType idp_type = 4;
+}
+
+message UserPII {
+  optional string username = 1;          // sAMAccountName, login, etc.
+  optional string email = 2;             // mail, userPrincipalName
+  optional string display_name = 3;      // displayName, cn
+  optional string first_name = 4;        // givenName
+  optional string last_name = 5;         // sn, surname
+  optional string phone = 6;             // telephoneNumber, mobile
+  optional string department = 7;        // department
+  optional string title = 8;             // title
+  optional string manager_id = 9;        // manager (reference)
+  optional string employee_id = 10;      // employeeID, employeeNumber
+  optional string location = 11;
+
+  repeated Attribute attributes = 20;
+}
+
+enum UserStatus {
+  USER_STATUS_UNSPECIFIED = 0;
+  USER_STATUS_ACTIVE = 1;
+  USER_STATUS_DISABLED = 2;
+}
+
+message Attribute {
+  AttributeKey key = 1;
+  string value = 2;
+}
+
+enum AttributeKey {
+  ATTRIBUTE_KEY_UNSPECIFIED = 0;
+}
+
+enum IdentityProviderType {
+  IDENTITY_PROVIDER_TYPE_UNSPECIFIED = 0;
+  IDENTITY_PROVIDER_TYPE_ACTIVE_DIRECTORY = 1;
+  IDENTITY_PROVIDER_TYPE_LDAP = 2;
+}
