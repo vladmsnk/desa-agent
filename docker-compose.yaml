@@ -1,0 +1,25 @@
+services:
+  desa-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: desa-agent
+    restart: unless-stopped
+    ports:
+      - "${GRPC_PORT:-50051}:50051"
+    env_file:
+      - .env
+    volumes:
+      # Persist BadgerDB data
+      - badger-data:/app/data
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "50051"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  badger-data:
+    driver: local
+

@@ -6,20 +6,31 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"desa-agent/internal/adapters"
 	"desa-agent/internal/models"
 )
 
-type UsersUseCase struct {
-	idp adapters.IdentityProvider
+type Storage interface {
+	GetUser(ctx context.Context, userHash string) (*models.User, error)
+	ListUsers(ctx context.Context) (<-chan models.User, <-chan error)
+	UpsertUsers(ctx context.Context, users []models.User) error
 }
 
-func NewUsersUseCase(idp adapters.IdentityProvider) *UsersUseCase {
-	return &UsersUseCase{idp: idp}
+type IdentityProvider interface {
+	GetUser(ctx context.Context, userID string) (*models.User, error)
+	ListUsers(ctx context.Context) ([]models.User, error)
+}
+
+type UsersUseCase struct {
+	storage Storage
+	idp     IdentityProvider
+}
+
+func NewUsersUseCase(storage Storage, idp IdentityProvider) *UsersUseCase {
+	return &UsersUseCase{storage: storage, idp: idp}
 }
 
 func (uc *UsersUseCase) GetUser(ctx context.Context, userHash string, includePII bool) (*models.User, error) {
-	user, err := uc.idp.GetUser(ctx, userHash)
+	user, err := uc.storage.GetUser(ctx, userHash)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user: %w", err)
 	}
@@ -36,6 +47,8 @@ func (uc *UsersUseCase) GetUser(ctx context.Context, userHash string, includePII
 }
 
 func (uc *UsersUseCase) ListUsers(ctx context.Context, includePII bool) (<-chan models.User, <-chan error) {
+	usersCh, storageErrCh := uc.storage.ListUsers(ctx)
+
 	outCh := make(chan models.User)
 	errCh := make(chan error, 1)
 
@@ -43,19 +56,17 @@ func (uc *UsersUseCase) ListUsers(ctx context.Context, includePII bool) (<-chan 
 		defer close(outCh)
 		defer close(errCh)
 
-		usersCh, idpErrCh := uc.idp.ListUsers(ctx)
-
 		for {
 			select {
 			case <-ctx.Done():
 				errCh <- ctx.Err()
 				return
 
-			case err, ok := <-idpErrCh:
+			case err, ok := <-storageErrCh:
 				if ok && err != nil {
-					errCh <- fmt.Errorf("idp error: %w", err)
-					return
+					errCh <- fmt.Errorf("storage error: %w", err)
 				}
+				return
 
 			case user, ok := <-usersCh:
 				if !ok {

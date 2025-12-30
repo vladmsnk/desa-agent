@@ -8,6 +8,6 @@ import (
 
 type IdentityProvider interface {
 	GetUser(ctx context.Context, userID string) (*models.User, error)
-	ListUsers(ctx context.Context) (<-chan models.User, <-chan error)
+	ListUsers(ctx context.Context) ([]models.User, error)
 	Close() error
 }

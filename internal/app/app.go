@@ -11,9 +11,9 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
-
 	"desa-agent/internal/adapters"
 	"desa-agent/internal/config"
+	"desa-agent/internal/storage"
 	"desa-agent/internal/transport"
 	"desa-agent/internal/usecase"
 )
@@ -21,7 +21,9 @@ import (
 type App struct {
 	cfg        *config.Config
 	grpcServer *grpc.Server
+	storage    *storage.Storage
 	idp        adapters.IdentityProvider
+	usersUC    *usecase.UsersUseCase
 	logger     *slog.Logger
 }
 
@@ -30,8 +32,22 @@ func New(cfg *config.Config) (*App, error) {
 		Level: slog.LevelInfo,
 	}))
 
+	store, err := storage.New(storage.Config{
+		Path:     cfg.Storage.Path,
+		InMemory: cfg.Storage.InMemory,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create storage: %w", err)
+	}
+
+	logger.Info("storage created",
+		"path", cfg.Storage.Path,
+		"in_memory", cfg.Storage.InMemory,
+	)
+
 	idp, err := adapters.NewIdentityProvider(cfg.IDP)
 	if err != nil {
+		store.Close()
 		return nil, fmt.Errorf("failed to create identity provider: %w", err)
 	}
 
@@ -40,7 +56,7 @@ func New(cfg *config.Config) (*App, error) {
 		"host", cfg.IDP.Host,
 	)
 
-	usersUC := usecase.NewUsersUseCase(idp)
+	usersUC := usecase.NewUsersUseCase(store, idp)
 
 	grpcServer := grpc.NewServer()
 
@@ -52,7 +68,9 @@ func New(cfg *config.Config) (*App, error) {
 	return &App{
 		cfg:        cfg,
 		grpcServer: grpcServer,
+		storage:    store,
 		idp:        idp,
+		usersUC:    usersUC,
 		logger:     logger,
 	}, nil
 }
@@ -77,6 +95,9 @@ func (a *App) Run(ctx context.Context) error {
 		}
 	}()
 
+	// Start the user sync job
+	go a.usersUC.StartSyncJob(ctx, a.logger)
+
 	select {
 	case <-ctx.Done():
 		a.logger.Info("context canceled, shutting down")
@@ -96,6 +117,10 @@ func (a *App) Shutdown() error {
 
 	if err := a.idp.Close(); err != nil {
 		a.logger.Error("failed to close identity provider", "error", err)
+	}
+
+	if err := a.storage.Close(); err != nil {
+		a.logger.Error("failed to close storage", "error", err)
 	}
 
 	a.logger.Info("application shutdown complete")

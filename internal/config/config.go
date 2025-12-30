@@ -14,8 +14,9 @@ const (
 )
 
 type Config struct {
-	GRPC GRPCConfig
-	IDP  IDPConfig
+	GRPC    GRPCConfig
+	IDP     IDPConfig
+	Storage StorageConfig
 }
 
 type GRPCConfig struct {
@@ -37,6 +38,11 @@ type IDPConfig struct {
 	UseTLS   bool
 }
 
+type StorageConfig struct {
+	Path     string
+	InMemory bool
+}
+
 func LoadFromEnv() (*Config, error) {
 	cfg := &Config{
 		GRPC: GRPCConfig{
@@ -51,6 +57,10 @@ func LoadFromEnv() (*Config, error) {
 			BindDN:   getEnv("IDP_BIND_DN", ""),
 			BindPass: getEnv("IDP_BIND_PASS", ""),
 			UseTLS:   getEnvBool("IDP_USE_TLS", false),
+		},
+		Storage: StorageConfig{
+			Path:     getEnv("STORAGE_PATH", "./data"),
+			InMemory: getEnvBool("STORAGE_IN_MEMORY", false),
 		},
 	}
 
