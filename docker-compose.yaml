@@ -10,7 +10,6 @@ services:
     env_file:
       - .env
     volumes:
-      # Persist BadgerDB data
       - badger-data:/app/data
     healthcheck:
       test: ["CMD", "nc", "-z", "localhost", "50051"]
@@ -18,7 +17,22 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
-
+  openldap:
+    image: osixia/openldap:1.5.0
+    container_name: openldap
+    hostname: openldap
+    environment:
+      - LDAP_ORGANISATION=Desa Inc
+      - LDAP_DOMAIN=desaidentity.com
+      - LDAP_ADMIN_PASSWORD=password
+      - LDAP_TLS=false
+    ports:
+      - "389:389"
+    volumes:
+      - ./openldap-test/data:/var/lib/ldap
+      - ./openldap-test/config:/etc/ldap/slapd.d
+      - ./openldap-test/ldifs:/container/service/slapd/assets/config/bootstrap/ldif/custom:ro
+    command: --copy-service
 volumes:
   badger-data:
     driver: local

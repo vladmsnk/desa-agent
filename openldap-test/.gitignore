@@ -1,0 +1,4 @@
+# Ignore LDAP runtime data
+data/
+config/
+
