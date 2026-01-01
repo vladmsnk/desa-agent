@@ -1,0 +1,35 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Build artifacts
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test files
+*_test.go
+**/*_test.go
+
+# Documentation
+*.md
+!go.md
+
+# Local data
+data/
+*.db
+
+# Environment files
+.env
+env.example
+
+# Proto source (compiled versions in pkg/)
+api/
+
