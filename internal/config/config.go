@@ -33,6 +33,7 @@ type IDPConfig struct {
 	Host     string
 	Port     int
 	BaseDN   string
+	UsersDN  string // DN where users are located (e.g., "ou=People,dc=example,dc=com")
 	BindDN   string
 	BindPass string
 	UseTLS   bool
@@ -54,6 +55,7 @@ func LoadFromEnv() (*Config, error) {
 			Host:     getEnv("IDP_HOST", "localhost"),
 			Port:     getEnvInt("IDP_PORT", 389),
 			BaseDN:   getEnv("IDP_BASE_DN", ""),
+			UsersDN:  getEnv("IDP_USERS_DN", ""),
 			BindDN:   getEnv("IDP_BIND_DN", ""),
 			BindPass: getEnv("IDP_BIND_PASS", ""),
 			UseTLS:   getEnvBool("IDP_USE_TLS", false),
