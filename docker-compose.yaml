@@ -7,10 +7,24 @@ services:
     restart: unless-stopped
     ports:
       - "${GRPC_PORT:-50051}:50051"
-    env_file:
-      - .env
+    environment:
+      - GRPC_HOST=${GRPC_HOST:-0.0.0.0}
+      - GRPC_PORT=${GRPC_PORT:-50051}
+      - IDP_TYPE=${IDP_TYPE:-ldap}
+      - IDP_HOST=${IDP_HOST:-openldap}
+      - IDP_PORT=${IDP_PORT:-389}
+      - IDP_BASE_DN=${IDP_BASE_DN}
+      - IDP_USERS_DN=${IDP_USERS_DN}
+      - IDP_BIND_DN=${IDP_BIND_DN}
+      - IDP_BIND_PASS=${IDP_BIND_PASS}
+      - IDP_USE_TLS=${IDP_USE_TLS:-false}
+      - STORAGE_PATH=${STORAGE_PATH:-/data}
+      - STORAGE_IN_MEMORY=${STORAGE_IN_MEMORY:-false}
     volumes:
-      - badger-data:/app/data
+      - badger-data:/data
+    depends_on:
+      openldap:
+        condition: service_started
     healthcheck:
       test: ["CMD", "nc", "-z", "localhost", "50051"]
       interval: 30s
