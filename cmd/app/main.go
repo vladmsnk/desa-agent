@@ -5,11 +5,15 @@ import (
 	"log"
 	"os"
 
+	"github.com/joho/godotenv"
+
 	"desa-agent/internal/app"
 	"desa-agent/internal/config"
 )
 
 func main() {
+	_ = godotenv.Load() // Load .env file if exists
+
 	if err := run(); err != nil {
 		log.Printf("application error: %v", err)
 		os.Exit(1)

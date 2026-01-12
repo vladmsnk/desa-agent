@@ -1,0 +1,115 @@
+# Organization Units
+dn: ou=People,dc=desaidentity,dc=com
+objectClass: organizationalUnit
+ou: People
+description: All people in the organization
+
+dn: ou=Groups,dc=desaidentity,dc=com
+objectClass: organizationalUnit
+ou: Groups
+description: All groups in the organization
+
+# Upper Manager - Top of hierarchy
+dn: uid=uppermanager,ou=People,dc=desaidentity,dc=com
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: person
+objectClass: top
+uid: uppermanager
+cn: John Smith
+sn: Smith
+givenName: John
+mail: john.smith@desaidentity.com
+title: Upper Manager
+telephoneNumber: +1-555-0100
+userPassword: password123
+
+# Manager - Reports to Upper Manager
+dn: uid=manager,ou=People,dc=desaidentity,dc=com
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: person
+objectClass: top
+uid: manager
+cn: Sarah Johnson
+sn: Johnson
+givenName: Sarah
+mail: sarah.johnson@desaidentity.com
+title: Manager
+telephoneNumber: +1-555-0101
+manager: uid=uppermanager,ou=People,dc=desaidentity,dc=com
+userPassword: password123
+
+# Developer 1 - Reports to Manager
+dn: uid=developer1,ou=People,dc=desaidentity,dc=com
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: person
+objectClass: top
+uid: developer1
+cn: Michael Brown
+sn: Brown
+givenName: Michael
+mail: michael.brown@desaidentity.com
+title: Developer
+telephoneNumber: +1-555-0102
+manager: uid=manager,ou=People,dc=desaidentity,dc=com
+userPassword: password123
+
+# Developer 2 - Reports to Manager
+dn: uid=developer2,ou=People,dc=desaidentity,dc=com
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: person
+objectClass: top
+uid: developer2
+cn: Emily Davis
+sn: Davis
+givenName: Emily
+mail: emily.davis@desaidentity.com
+title: Developer
+telephoneNumber: +1-555-0103
+manager: uid=manager,ou=People,dc=desaidentity,dc=com
+userPassword: password123
+
+# Intern - Reports to Manager
+dn: uid=intern,ou=People,dc=desaidentity,dc=com
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: person
+objectClass: top
+uid: intern
+cn: Alex Wilson
+sn: Wilson
+givenName: Alex
+mail: alex.wilson@desaidentity.com
+title: Intern
+telephoneNumber: +1-555-0104
+manager: uid=manager,ou=People,dc=desaidentity,dc=com
+userPassword: password123
+
+# Groups
+dn: cn=developers,ou=Groups,dc=desaidentity,dc=com
+objectClass: groupOfNames
+cn: developers
+description: Development team
+member: uid=developer1,ou=People,dc=desaidentity,dc=com
+member: uid=developer2,ou=People,dc=desaidentity,dc=com
+
+dn: cn=managers,ou=Groups,dc=desaidentity,dc=com
+objectClass: groupOfNames
+cn: managers
+description: Management team
+member: uid=uppermanager,ou=People,dc=desaidentity,dc=com
+member: uid=manager,ou=People,dc=desaidentity,dc=com
+
+dn: cn=all-staff,ou=Groups,dc=desaidentity,dc=com
+objectClass: groupOfNames
+cn: all-staff
+description: All staff members
+member: uid=uppermanager,ou=People,dc=desaidentity,dc=com
+member: uid=manager,ou=People,dc=desaidentity,dc=com
+member: uid=developer1,ou=People,dc=desaidentity,dc=com
+member: uid=developer2,ou=People,dc=desaidentity,dc=com
+member: uid=intern,ou=People,dc=desaidentity,dc=com
+

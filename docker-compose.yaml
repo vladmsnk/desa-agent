@@ -7,19 +7,55 @@ services:
     restart: unless-stopped
     ports:
       - "${GRPC_PORT:-50051}:50051"
-    env_file:
-      - .env
+    environment:
+      - GRPC_HOST=${GRPC_HOST:-0.0.0.0}
+      - GRPC_PORT=${GRPC_PORT:-50051}
+      - IDP_TYPE=${IDP_TYPE:-ldap}
+      - IDP_HOST=${IDP_HOST:-openldap}
+      - IDP_PORT=${IDP_PORT:-389}
+      - IDP_BASE_DN=${IDP_BASE_DN}
+      - IDP_USERS_DN=${IDP_USERS_DN}
+      - IDP_BIND_DN=${IDP_BIND_DN}
+      - IDP_BIND_PASS=${IDP_BIND_PASS}
+      - IDP_USE_TLS=${IDP_USE_TLS:-false}
+      - STORAGE_PATH=${STORAGE_PATH:-/data}
+      - STORAGE_IN_MEMORY=${STORAGE_IN_MEMORY:-false}
     volumes:
-      # Persist BadgerDB data
-      - badger-data:/app/data
+      - badger-data:/data
+    networks:
+      - desa-shared
+    depends_on:
+      openldap:
+        condition: service_started
     healthcheck:
       test: ["CMD", "nc", "-z", "localhost", "50051"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 10s
-
+  openldap:
+    image: osixia/openldap:1.5.0
+    container_name: openldap
+    hostname: openldap
+    environment:
+      - LDAP_ORGANISATION=Desa Inc
+      - LDAP_DOMAIN=desaidentity.com
+      - LDAP_ADMIN_PASSWORD=password
+      - LDAP_TLS=false
+    ports:
+      - "389:389"
+    volumes:
+      - ./openldap-test/data:/var/lib/ldap
+      - ./openldap-test/config:/etc/ldap/slapd.d
+      - ./openldap-test/ldifs:/container/service/slapd/assets/config/bootstrap/ldif/custom:ro
+    command: --copy-service
+    networks:
+      - desa-shared
 volumes:
   badger-data:
     driver: local
 
+networks:
+  desa-shared:
+    name: desa-shared-network
+    external: true

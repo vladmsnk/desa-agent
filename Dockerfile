@@ -21,7 +21,7 @@ RUN apk add --no-cache ca-certificates tzdata
 
 RUN adduser -D -g '' appuser
 
-RUN mkdir -p /app/data && chown -R appuser:appuser /app
+RUN mkdir -p /data && chown -R appuser:appuser /app /data
 
 COPY --from=builder /app/desa-agent /app/desa-agent
 
